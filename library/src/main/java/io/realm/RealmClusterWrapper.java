@@ -18,9 +18,12 @@ public class RealmClusterWrapper<T extends RealmObject> implements ClusterItem {
 
     private String title;
 
+    private String snippet;
+
     public RealmClusterWrapper(T realmObject, String title, double latitude, double longitude) {
         this.realmObject = realmObject;
         this.title = title;
+        this.snippet = "";
         latLng = new LatLng(latitude, longitude);
     }
 
@@ -31,5 +34,10 @@ public class RealmClusterWrapper<T extends RealmObject> implements ClusterItem {
 
     public String getTitle() {
         return title;
+    }
+
+    @Override
+    public String getSnippet() {
+        return snippet;
     }
 }

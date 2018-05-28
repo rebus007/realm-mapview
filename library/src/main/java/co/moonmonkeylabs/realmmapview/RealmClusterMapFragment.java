@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
@@ -155,29 +156,35 @@ public abstract class RealmClusterMapFragment<M extends RealmObject> extends Fra
         if (fragment == null) {
             throw new IllegalStateException("Map fragment not found.");
         }
-        map = ((SupportMapFragment) fragment).getMap();
-        if (map == null) {
-            throw new IllegalStateException("Map not found in fragment.");
-        }
 
-        getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(
-                new LatLng(getDefaultLatitude(), getDefaultLongitude()),
-                getDefaultZoom()));
+        ((SupportMapFragment) fragment).getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+                map = googleMap;
+                if (map == null) {
+                    throw new IllegalStateException("Map not found in fragment.");
+                }
 
-        RealmClusterManager<M> realmClusterManager =
-                new RealmClusterManager<>(getActivity(), getMap());
-        RealmResults<M> realmResults = realm.where(clazz).findAll();
-        realmClusterManager.updateRealmResults(
-                realmResults,
-                getTitleColumnName(),
-                getLatitudeColumnName(),
-                getLongitudeColumnName());
+                getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(
+                        new LatLng(getDefaultLatitude(), getDefaultLongitude()),
+                        getDefaultZoom()));
 
-        realmClusterManager.setRenderer(
-                new RealmClusterRenderer(getActivity(), getMap(), realmClusterManager));
-        getMap().setOnCameraChangeListener(realmClusterManager);
-        getMap().setOnMarkerClickListener(realmClusterManager);
-        getMap().setOnInfoWindowClickListener(realmClusterManager);
+                RealmClusterManager<M> realmClusterManager =
+                        new RealmClusterManager<>(getActivity(), getMap());
+                RealmResults<M> realmResults = realm.where(clazz).findAll();
+                realmClusterManager.updateRealmResults(
+                        realmResults,
+                        getTitleColumnName(),
+                        getLatitudeColumnName(),
+                        getLongitudeColumnName());
+
+                realmClusterManager.setRenderer(
+                        new RealmClusterRenderer(getActivity(), getMap(), realmClusterManager));
+                getMap().setOnCameraIdleListener(realmClusterManager);
+                getMap().setOnMarkerClickListener(realmClusterManager);
+                getMap().setOnInfoWindowClickListener(realmClusterManager);
+            }
+        });
     }
 
     private GoogleMap getMap() {
